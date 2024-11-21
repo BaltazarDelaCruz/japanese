@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Number to Japanese Converter</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-image: url('https://upload.wikimedia.org/wikipedia/commons/5/5c/Japanese_wave_pattern.svg');
+      background-size: cover;
+      font-family: 'Noto Serif JP', serif;
+      color: #333;
+    }
+    .container {
+      background: rgba(255, 255, 255, 0.9);
+      border: 2px solid #d72638;
+    }
+    h1 {
+      color: #d72638;
+      font-family: 'Noto Serif JP', serif;
+    }
+    button {
+      background-color: #d72638;
+      border-color: #d72638;
+    }
+    button:hover {
+      background-color: #b81f2b;
+      border-color: #b81f2b;
+    }
+    .japanese-theme {
+      font-size: 16px;
+      color: #d72638;
+      font-weight: bold;
+    }
+    .romaji-theme {
+      font-size: 14px;
+      color: #333;
+    }
+    .highscore {
+      font-size: 18px;
+      color: #28a745;
+      font-weight: bold;
+    }
+  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="container my-5 p-4 shadow rounded">
+    <h1 class="text-center mb-4">Number to Japanese Converter</h1>
+    <p class="text-center">Enter a number to see its Japanese pronunciation:</p>
+    <div class="form-group text-center">
+      <input 
+        type="number" 
+        id="numberInput" 
+        class="form-control w-50 mx-auto" 
+        placeholder="Enter a number (1 - 999,999)" />
+    </div>
+    <div class="text-center">
+      <button class="btn btn-primary mb-3" onclick="convertToJapanese()">Convert</button>
+    </div>
+    <div id="result" class="mb-4 text-center"></div>
+
+    <hr />
+
+    <h2 class="text-center my-4">Quiz Mode</h2>
+    <div class="text-center">
+      <button class="btn btn-success mb-3" data-toggle="modal" data-target="#quizModal" onclick="startQuiz()">Start Quiz</button>
+    </div>
+
+    <div class="text-center highscore" id="highscoreDisplay">
+      High Score: 0
+    </div>
+  </div>
+
+  <!-- Modal for Quiz -->
+  <div class="modal fade" id="quizModal" tabindex="-1" role="dialog" aria-labelledby="quizModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="quizModalLabel">Quiz: Guess the Japanese Number</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body text-center">
+          <p id="quizQuestion"></p>
+          <input type="text" id="quizAnswer" class="form-control w-50 mx-auto mb-3" placeholder="Enter your answer (e.g., いちまん or ichi-man)" />
+          <button class="btn btn-primary" onclick="checkQuizAnswer()">Submit Answer</button>
+          <div id="quizFeedback" class="mt-3"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Arrays for Japanese numbers
+    const ones = ["", "いち", "に", "さん", "よん", "ご", "ろく", "なな", "はち", "きゅう"];
+    const onesRomaji = ["", "ichi", "ni", "san", "yon", "go", "roku", "nana", "hachi", "kyuu"];
+    const tens = ["", "じゅう", "にじゅう", "さんじゅう", "よんじゅう", "ごじゅう", "ろくじゅう", "ななじゅう", "はちじゅう", "きゅうじゅう"];
+    const tensRomaji = ["", "juu", "ni-juu", "san-juu", "yon-juu", "go-juu", "roku-juu", "nana-juu", "hachi-juu", "kyuu-juu"];
+    const hundreds = ["", "ひゃく", "にひゃく", "さんびゃく", "よんひゃく", "ごひゃく", "ろっぴゃく", "ななひゃく", "はっぴゃく", "きゅうひゃく"];
+    const hundredsRomaji = ["", "hyaku", "ni-hyaku", "san-byaku", "yon-hyaku", "go-hyaku", "roppyaku", "nana-hyaku", "happyaku", "kyuu-hyaku"];
+    const thousands = ["", "せん", "にせん", "さんぜん", "よんせん", "ごせん", "ろくせん", "ななせん", "はっせん", "きゅうせん"];
+    const thousandsRomaji = ["", "sen", "ni-sen", "san-zen", "yon-sen", "go-sen", "roku-sen", "nana-sen", "hassen", "kyuu-sen"];
+
+
+    function convertToJapanese() {
+      const number = document.getElementById("numberInput").value;
+
+      if (number < 1 || number > 999999 || isNaN(number)) {
+        document.getElementById("result").innerHTML = `
+          <div class="alert alert-danger">Please enter a valid number between 1 and 999,999.</div>`;
+        return;
+      }
+
+      let japanese = "";
+      let romaji = "";
+      let remaining = number;
+
+      if (number >= 10000) {
+        const man = Math.floor(remaining / 10000);
+        japanese += man === 1 ? "いちまん" : ones[man] + "まん";
+        romaji += man === 1 ? "ichi-man" : onesRomaji[man] + "-man";
+        remaining %= 10000;
+      }
+
+      if (remaining >= 1000) {
+        const sen = Math.floor(remaining / 1000);
+        japanese += thousands[sen];
+        romaji += thousandsRomaji[sen];
+        remaining %= 1000;
+      }
+
+      if (remaining >= 100) {
+        const hyaku = Math.floor(remaining / 100);
+        japanese += hundreds[hyaku];
+        romaji += hundredsRomaji[hyaku];
+        remaining %= 100;
+      }
+
+      if (remaining >= 10) {
+        const juu = Math.floor(remaining / 10);
+        japanese += tens[juu];
+        romaji += tensRomaji[juu];
+        remaining %= 10;
+      }
+
+      if (remaining > 0) {
+        japanese += ones[remaining];
+        romaji += onesRomaji[remaining];
+      }
+
+      document.getElementById("result").innerHTML = `
+        <h4 class="japanese-theme">Japanese: ${japanese || "れい"}</h4>
+        <h4 class="romaji-theme">Romaji: ${romaji || "rei"}</h4>`;
+    }
+
+    let quizNumber = 0;
+    let currentScore = 0;
+    let highScore = localStorage.getItem('highScore') ? parseInt(localStorage.getItem('highScore')) : 0;
+
+    // Display the high score
+    document.getElementById("highscoreDisplay").innerText = `High Score: ${highScore}`;
+
+    // Function to start the quiz by generating a random number
+    function startQuiz() {
+      quizNumber = Math.floor(Math.random() * 20) + 1; // Random number between 1 and 9999
+      document.getElementById("quizQuestion").innerHTML = `What is the Japanese pronunciation of the number <strong>${quizNumber}</strong>?`;
+      document.getElementById("quizAnswer").value = '';
+      document.getElementById("quizFeedback").innerHTML = '';
+    }
+
+    // Function to check the answer and provide feedback
+    function checkQuizAnswer() {
+      let japanese = "";
+      let romaji = "";
+      let remaining = quizNumber;
+
+      if (quizNumber >= 10000) {
+        const man = Math.floor(remaining / 10000);
+        japanese += man === 1 ? "いちまん" : ones[man] + "まん";
+        romaji += man === 1 ? "ichi-man" : onesRomaji[man] + "-man";
+        remaining %= 10000;
+      }
+
+      if (remaining >= 1000) {
+        const sen = Math.floor(remaining / 1000);
+        japanese += thousands[sen];
+        romaji += thousandsRomaji[sen];
+        remaining %= 1000;
+      }
+
+      if (remaining >= 100) {
+        const hyaku = Math.floor(remaining / 100);
+        japanese += hundreds[hyaku];
+        romaji += hundredsRomaji[hyaku];
+        remaining %= 100;
+      }
+
+      if (remaining >= 10) {
+        const juu = Math.floor(remaining / 10);
+        japanese += tens[juu];
+        romaji += tensRomaji[juu];
+        remaining %= 10;
+      }
+
+      if (remaining > 0) {
+        japanese += ones[remaining];
+        romaji += onesRomaji[remaining];
+      }
+
+      const answer = document.getElementById("quizAnswer").value.trim().toLowerCase();
+      if (answer === japanese || answer === romaji) {
+        document.getElementById("quizFeedback").innerHTML = `
+          <p class="text-success">Correct! 🎉</p>
+          <button class="btn btn-success" onclick="startQuiz()">Try Another</button>`;
+        currentScore++;
+        updateHighScore();
+      } else {
+        document.getElementById("quizFeedback").innerHTML = `
+          <p class="text-danger">Incorrect. Try again! 😢</p>`;
+      }
+    }
+
+   
+    function updateHighScore() {
+      if (currentScore > highScore) {
+        highScore = currentScore;
+        localStorage.setItem('highScore', highScore);
+        document.getElementById("highscoreDisplay").innerText = `High Score: ${highScore}`;
+      }
+    }
+  </script>
+
+  <!-- Scripts -->
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
